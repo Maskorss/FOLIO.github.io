@@ -8,7 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($usuario_ingresado === $usuario_valido && $contrasena_ingresada === $contrasena_valida) {
         // Inicio de sesión exitoso, redirigir a index.html
-        header("Location: file:///C:/Users/Probando/Desktop/Nueva%20carpeta%20(2)/index.html");
+        header("Location: folio.html");
         exit();
     } else {
         echo "Credenciales incorrectas. Inténtalo nuevamente.";
