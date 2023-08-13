@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unir PDFs</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/2.14.0/pdf-lib.min.js"></script>
+</head>
+<body>
+    <h1>Unir PDFs</h1>
+
+    <form id="pdfForm">
+        <label for="pdfInput">Seleccionar PDF:</label>
+        <input type="file" id="pdfInput" accept=".pdf" required>
+        <br>
+        <label for="pdfList">Seleccionar otro PDF:</label>
+        <select id="pdfList" required>
+            <option value="https://raw.githubusercontent.com/Maskorss/prueba.github.io/ad6ed6b5e040c9e85f080ce54fa4d3f98bd336ce/REVERSO%20UNIVERSAL/AGUASCALIENTE_REVERSO.PDF">PDF 1</option>
+            <option value="pdf2.pdf">PDF 2</option>
+            <option value="pdf3.pdf">PDF 3</option>
+            <!-- Agrega más opciones según sea necesario -->
+        </select>
+        <br>
+        <button type="button" id="mergeButton">Unir PDFs</button>
+    </form>
+
+    <iframe id="resultFrame" style="display: none;"></iframe>
+
+    <script>
+        async function mergePDFs(pdfBytes1, pdfBytes2) {
+            const pdfDoc1 = await PDFLib.PDFDocument.load(pdfBytes1);
+            const pdfDoc2 = await PDFLib.PDFDocument.load(pdfBytes2);
+
+            const [pdf1Page] = await pdfDoc1.copyPages(pdfDoc2, [0]);
+            pdfDoc1.addPage(pdf1Page);
+
+            return await pdfDoc1.save();
+        }
+
+        document.getElementById('mergeButton').addEventListener('click', async () => {
+            const pdfInput = document.getElementById('pdfInput');
+            const pdfList = document.getElementById('pdfList');
+            const resultFrame = document.getElementById('resultFrame');
+
+            const selectedPdf = pdfList.value;
+            const uploadedPdf = pdfInput.files[0];
+
+            if (selectedPdf && uploadedPdf) {
+                const uploadedPdfData = new Uint8Array(await uploadedPdf.arrayBuffer());
+
+                const response = await fetch(selectedPdf);
+                const selectedPdfData = new Uint8Array(await response.arrayBuffer());
+
+                const mergedPdfData = await mergePDFs(uploadedPdfData, selectedPdfData);
+
+                const blob = new Blob([mergedPdfData], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+
+                resultFrame.src = url;
+                resultFrame.style.display = 'block';
+            } else {
+                console.error('Seleccione un PDF y suba otro para unir.');
+            }
+        });
+    </script>
+</body>
+</html>
