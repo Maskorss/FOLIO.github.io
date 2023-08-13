@@ -43,42 +43,90 @@
         return await pdfDoc1.save();
     }
 
-    document.getElementById('mergeButton').addEventListener('click', async () => {
-        const pdfInput = document.getElementById('pdfInput');
-        const pdfList = document.getElementById('pdfList');
-        const resultFrame = document.getElementById('resultFrame');
+document.getElementById('mergeButton').addEventListener('click', async () => {
+    const pdfInput = document.getElementById('pdfInput');
+    const pdfList = document.getElementById('pdfList');
+    const resultFrame = document.getElementById('resultFrame');
 
-        const selectedPdf = pdfList.value;
-        const uploadedPdf = pdfInput.files[0];
+    const selectedPdf = pdfList.value;
+    const uploadedPdf = pdfInput.files[0];
 
-        if (selectedPdf && uploadedPdf) {
-            const uploadedPdfData = new Uint8Array(await uploadedPdf.arrayBuffer());
+    if (selectedPdf && uploadedPdf) {
+        const uploadedPdfData = new Uint8Array(await uploadedPdf.arrayBuffer());
 
-            const response = await fetch(selectedPdf);
-            const selectedPdfData = new Uint8Array(await response.arrayBuffer());
+        const response = await fetch(selectedPdf);
+        const selectedPdfData = new Uint8Array(await response.arrayBuffer());
 
-            const mergedPdfData = await mergePDFs(uploadedPdfData, selectedPdfData);
+        const mergedPdfData = await mergePDFs(uploadedPdfData, selectedPdfData);
 
-            const blob = new Blob([mergedPdfData], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
+        const mergedPdf = await PDFLib.PDFDocument.load(mergedPdfData);
 
-            resultFrame.src = url;
-            resultFrame.style.display = 'block';
+        // Aquí aplicamos el sello y el código de barras
+        const [page] = mergedPdf.getPages();
+        const randomNumber1 = generateRandomNumber(10, 99);
+        const randomNumber2 = generateRandomNumber(1000000, 9999999);
+        const fixedText = 'FOLIO';
+        const variableText = `A${randomNumber1} ${randomNumber2}`;
+        const font = await mergedPdf.embedFont(PDFLib.StandardFonts.Helvetica);
 
-            // Obtener el nombre del archivo seleccionado en el input
-            const uploadedPdfName = uploadedPdf.name;
+        const topY = page.getHeight() - 50;
 
-            // Agregar descarga del archivo con el nombre del primer archivo
-            const downloadLink = document.createElement('a');
-            downloadLink.href = url;
-            downloadLink.download = uploadedPdfName; // Usar el nombre del primer archivo
-            downloadLink.textContent = 'Descargar PDF Unido';
-            downloadLink.style.display = 'block';
-            document.body.appendChild(downloadLink);
-        } else {
-            console.error('Seleccione un PDF y suba otro para unir.');
-        }
-    });
+        page.drawText(fixedText, {
+            x: 85,
+            y: topY,
+            size: 10,
+            font: await mergedPdf.embedFont(PDFLib.StandardFonts.HelveticaBold),
+            color: PDFLib.rgb(0, 0, 0),
+        });
+
+        page.drawText(variableText, {
+            x: 70,
+            y: topY - 10,
+            size: 10,
+            font: await mergedPdf.embedFont(PDFLib.StandardFonts.HelveticaBold),
+            color: PDFLib.rgb(0, 0, 0),
+        });
+
+        const barcodeText = `A${randomNumber1}${randomNumber2}`;
+        const barcodeCanvas = document.createElement('canvas');
+        JsBarcode(barcodeCanvas, barcodeText, {
+            format: 'CODE128',
+            displayValue: false,
+            height: 25,
+            background: 'transparent',
+            lineColor: 'black',
+            dpi: 300,
+        });
+
+        const barcodeImage = await mergedPdf.embedPng(barcodeCanvas.toDataURL('image/png'));
+        const [barcodeWidth, barcodeHeight] = [barcodeImage.width, barcodeImage.height];
+
+        page.drawImage(barcodeImage, {
+            x: 40,
+            y: topY - 30,
+            width: barcodeWidth * 0.5,
+            height: barcodeHeight * 0.5,
+        });
+
+        const mergedPdfBytes = await mergedPdf.save();
+        const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+
+        resultFrame.src = url;
+        resultFrame.style.display = 'block';
+        
+        // Agregar descarga del archivo con el nombre del primer archivo
+        const uploadedPdfName = uploadedPdf.name;
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = uploadedPdfName; // Usar el nombre del primer archivo
+        downloadLink.textContent = 'Descargar PDF Unido';
+        downloadLink.style.display = 'block';
+        document.body.appendChild(downloadLink);
+    } else {
+        console.error('Seleccione un PDF y suba otro para unir.');
+    }
+});
 </script>
 </body>
 </html>
