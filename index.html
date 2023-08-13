@@ -32,7 +32,7 @@
 
     <iframe id="resultFrame" style="display: none;"></iframe>
 
-   <script>
+<script>
     async function mergePDFs(pdfBytes1, pdfBytes2) {
         const pdfDoc1 = await PDFLib.PDFDocument.load(pdfBytes1);
         const pdfDoc2 = await PDFLib.PDFDocument.load(pdfBytes2);
@@ -65,10 +65,13 @@
             resultFrame.src = url;
             resultFrame.style.display = 'block';
 
-            // Agregar descarga del archivo
+            // Obtener el nombre del archivo seleccionado en el input
+            const uploadedPdfName = uploadedPdf.name;
+
+            // Agregar descarga del archivo con el nombre del primer archivo
             const downloadLink = document.createElement('a');
             downloadLink.href = url;
-            downloadLink.download = 'pdf_unido.pdf'; // Nombre del archivo descargado
+            downloadLink.download = uploadedPdfName; // Usar el nombre del primer archivo
             downloadLink.textContent = 'Descargar PDF Unido';
             downloadLink.style.display = 'block';
             document.body.appendChild(downloadLink);
@@ -77,3 +80,5 @@
         }
     });
 </script>
+</body>
+</html>
