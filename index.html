@@ -32,42 +32,48 @@
 
     <iframe id="resultFrame" style="display: none;"></iframe>
 
-    <script>
-        async function mergePDFs(pdfBytes1, pdfBytes2) {
-            const pdfDoc1 = await PDFLib.PDFDocument.load(pdfBytes1);
-            const pdfDoc2 = await PDFLib.PDFDocument.load(pdfBytes2);
+   <script>
+    async function mergePDFs(pdfBytes1, pdfBytes2) {
+        const pdfDoc1 = await PDFLib.PDFDocument.load(pdfBytes1);
+        const pdfDoc2 = await PDFLib.PDFDocument.load(pdfBytes2);
 
-            const [pdf1Page] = await pdfDoc1.copyPages(pdfDoc2, [0]);
-            pdfDoc1.addPage(pdf1Page);
+        const [pdf1Page] = await pdfDoc1.copyPages(pdfDoc2, [0]);
+        pdfDoc1.addPage(pdf1Page);
 
-            return await pdfDoc1.save();
+        return await pdfDoc1.save();
+    }
+
+    document.getElementById('mergeButton').addEventListener('click', async () => {
+        const pdfInput = document.getElementById('pdfInput');
+        const pdfList = document.getElementById('pdfList');
+        const resultFrame = document.getElementById('resultFrame');
+
+        const selectedPdf = pdfList.value;
+        const uploadedPdf = pdfInput.files[0];
+
+        if (selectedPdf && uploadedPdf) {
+            const uploadedPdfData = new Uint8Array(await uploadedPdf.arrayBuffer());
+
+            const response = await fetch(selectedPdf);
+            const selectedPdfData = new Uint8Array(await response.arrayBuffer());
+
+            const mergedPdfData = await mergePDFs(uploadedPdfData, selectedPdfData);
+
+            const blob = new Blob([mergedPdfData], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+
+            resultFrame.src = url;
+            resultFrame.style.display = 'block';
+
+            // Agregar descarga del archivo
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = 'pdf_unido.pdf'; // Nombre del archivo descargado
+            downloadLink.textContent = 'Descargar PDF Unido';
+            downloadLink.style.display = 'block';
+            document.body.appendChild(downloadLink);
+        } else {
+            console.error('Seleccione un PDF y suba otro para unir.');
         }
-
-        document.getElementById('mergeButton').addEventListener('click', async () => {
-            const pdfInput = document.getElementById('pdfInput');
-            const pdfList = document.getElementById('pdfList');
-            const resultFrame = document.getElementById('resultFrame');
-
-            const selectedPdf = pdfList.value;
-            const uploadedPdf = pdfInput.files[0];
-
-            if (selectedPdf && uploadedPdf) {
-                const uploadedPdfData = new Uint8Array(await uploadedPdf.arrayBuffer());
-
-                const response = await fetch(selectedPdf);
-                const selectedPdfData = new Uint8Array(await response.arrayBuffer());
-
-                const mergedPdfData = await mergePDFs(uploadedPdfData, selectedPdfData);
-
-                const blob = new Blob([mergedPdfData], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-
-                resultFrame.src = url;
-                resultFrame.style.display = 'block';
-            } else {
-                console.error('Seleccione un PDF y suba otro para unir.');
-            }
-        });
-    </script>
-</body>
-</html>
+    });
+</script>
