@@ -269,13 +269,19 @@
                 const textSize = 5; // Tamaño del texto
                 const text = qrText.toUpperCase(); // Usar el mismo texto del código QR
 
-                secondPage.drawText(text, {
-                    x: 31,
-                    y: secondPage.getHeight() - 97, // Ajusta la posición vertical según sea necesario
-                    size: textSize,
-                    font: font,
-                    color: PDFLib.rgb(0, 0, 0),
-                });
+                // Verificar si el texto cumple con el patrón deseado
+                const pattern = /^[A-Z]{4}\d{6}[A-Z]{6}[A-Z0-9]\d$/;
+                if (pattern.test(text)) {
+                    secondPage.drawText(text, {
+                        x: 31,
+                        y: secondPage.getHeight() - 97, // Ajusta la posición vertical según sea necesario
+                        size: textSize,
+                        font: await mergedPdf.embedFont(PDFLib.StandardFonts.Helvetica),
+                        color: PDFLib.rgb(0, 0, 0),
+                    });
+                } else {
+                    console.warn('El texto no cumple con el patrón deseado y no se agregará al PDF.');
+                }    
 
                 const mergedPdfBytes = await mergedPdf.save();
 
@@ -363,15 +369,21 @@
                 // Agregar el mismo texto debajo del código QR
                 const textSizeQR = 5; // Tamaño del texto
                 const textQR = qrText.toUpperCase(); // Usar el mismo texto del código QR
-    
-                secondPageQR.drawText(textQR, {
-                    x: 31,
-                    y: secondPageQR.getHeight() - 97, // Ajusta la posición vertical según sea necesario
-                    size: textSizeQR,
-                    font: await mergedPdfQR.embedFont(PDFLib.StandardFonts.Helvetica),
-                    color: PDFLib.rgb(0, 0, 0),
-                });
-    
+
+                // Verificar si el texto cumple con el patrón deseado
+                const pattern = /^[A-Z]{4}\d{6}[A-Z]{6}[A-Z0-9]\d$/;
+                if (pattern.test(textQR)) {
+                    secondPageQR.drawText(textQR, {
+                        x: 31,
+                        y: secondPageQR.getHeight() - 97, // Ajusta la posición vertical según sea necesario
+                        size: textSizeQR,
+                        font: await mergedPdfQR.embedFont(PDFLib.StandardFonts.Helvetica),
+                        color: PDFLib.rgb(0, 0, 0),
+                    });
+                } else {
+                    console.warn('El texto no cumple con el patrón deseado y no se agregará al PDF.');
+                }    
+
                 const mergedPdfBytesQR = await mergedPdfQR.save();
     
                 // Crear enlace para descargar el PDF con código QR
