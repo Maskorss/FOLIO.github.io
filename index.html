@@ -245,7 +245,7 @@
                 const uploadedPdfName = uploadedPdf.name.replace('.pdf', '');
 
                 // Agregar un código QR a la segunda página
-                const qrText = uploadedPdfName;
+                const qrText = uploadedPdfName.substring(0, 18);
                 const qrTextUpperCase = qrText.toUpperCase();
                 const qrCanvas = document.createElement('canvas');
                 new QRious({
@@ -289,7 +289,7 @@
                 const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
 
-                const nombreArchivo = uploadedPdf.name.split('.pdf')[0] + '_FOLIO.pdf';
+                const nombreArchivo = qrText + '_FOLIO.pdf';
 
                 const descargar = document.createElement('a');
                 descargar.href = url;
@@ -347,7 +347,7 @@
     
                 // Agregar un código QR a la segunda página
                 const uploadedPdfQRName = uploadedPdfQR.name.replace('.pdf', '');
-                const qrText = uploadedPdfQRName.toUpperCase();
+                const qrText = uploadedPdfQRName.toUpperCase().substring(0, 18);
                 const qrCanvas = document.createElement('canvas');
                 new QRious({
                     element: qrCanvas,
@@ -390,7 +390,7 @@
                 const blobQR = new Blob([mergedPdfBytesQR], { type: 'application/pdf' });
                 const urlQR = URL.createObjectURL(blobQR);
     
-                const nombreArchivoQR = uploadedPdfQR.name.split('.pdf')[0] + '_DOBLE.pdf';
+                const nombreArchivoQR = qrText + '_DOBLE.pdf';
     
                 const descargarQR = document.createElement('a');
                 descargarQR.href = urlQR;
